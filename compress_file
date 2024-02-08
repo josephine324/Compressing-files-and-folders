@@ -1,0 +1,64 @@
+import os
+import shutil
+import tarfile
+import zipfile
+from datetime import datetime
+
+def compress_folder(folder_path, compress_type):
+    try:
+        # Get the current date in the format YYYY_MM_DD
+        current_date = datetime.now().strftime("%Y_%m_%d")
+
+        # Get the folder name without the full path
+        folder_name = os.path.basename(folder_path)
+
+        # Define the compressed file name based on user's choice
+        compressed_file_name = f"{folder_name}_{current_date}.{compress_type}"
+
+        # Full path to the compressed file
+        compressed_file_path = os.path.join(os.getcwd(), compressed_file_name)
+
+        # Choose the compression method based on user's choice
+        if compress_type == 'zip':
+            with zipfile.ZipFile(compressed_file_path, 'w') as zipf:
+                for root, _, files in os.walk(folder_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, folder_path)
+                        zipf.write(file_path, arcname=arcname)
+
+        elif compress_type in ['tar', 'tgz']:
+            with tarfile.open(compressed_file_path, f'w:{compress_type}') as tarf:
+                tarf.add(folder_path, arcname=os.path.basename(folder_path))
+
+        print(f"Compression successful. Compressed file saved as: {compressed_file_path}")
+
+    except Exception as e:
+        print(f"Compression failed. Error: {str(e)}")
+
+def main():
+    # Prompt the user to enter the folder path
+    folder_path = input("Enter the path of the folder to compress: ")
+
+    # Check if the folder exists
+    if not os.path.exists(folder_path):
+        print("Error: The specified folder does not exist.")
+        return
+
+    # Display available compression types
+    print("Available compression types: zip, tar, tgz")
+
+    # Prompt the user to select the compression type
+    compress_type = input("Enter the desired compression type: ")
+
+    # Validate user input
+    if compress_type not in ['zip', 'tar', 'tgz']:
+        print("Error: Invalid compression type.")
+        return
+
+    # Call the compress_folder function
+    compress_folder(folder_path, compress_type)
+
+if __name__ == "__main__":
+    main()
+
